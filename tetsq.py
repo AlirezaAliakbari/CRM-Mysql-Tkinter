@@ -1,6 +1,7 @@
 from tkinter import *
 #from PIL import ImageTk,Image
 import mysql.connector
+import csv
 
 root = Tk()
 root.title("arvin")
@@ -26,7 +27,7 @@ my_cursor = mydb.cursor()
 # Test to see if database was created
 # my_cursor.execute("SHOW DATABASES")
 # for db in my_cursor:
-#     print(db)
+#      print(db)
 
 #Drop the table 
 #my_cursor.execute("DROP TABLE customers")
@@ -85,7 +86,40 @@ def add_customer():
     mydb.commit()
     #clear the fields
     clear_fields()
+# write to CSV Excel Function
+def write_to_csv(result):
+    with open("customer.csv", "a", newline="") as f:
+        w = csv.writer(f, dialect= "excel")
+        for records in result:
+            w.writerow(records)
 
+# search customers
+def search_customer():
+    search_customers = Tk()
+    search_customers.title("Search All Customers")
+    search_customers.geometry("800x600") 
+    def search_now():
+        searched = search_box.get()
+        sql = "SELECT * FROM customers WHERE last_name = %s"
+        name = (searched, )
+        result = my_cursor.execute(sql, name)
+        result = my_cursor.fetchall()
+
+        if not result:
+            result = "Record Not Found..."
+
+        searched_label =Label(search_customers, text=result)
+        searched_label.grid(row=2, column=0, padx=10, columnspan=2)
+
+    # Entry box to search for customers
+    search_box = Entry(search_customers)
+    search_box.grid(row=0 , column=1, padx=10, pady=10)
+    # Entry box label to search for customers
+    search_box_label= Label(search_customers, text="جستجو  ")
+    search_box_label.grid(row=0, column=0, padx=10, pady=10)
+    # search Button for customer
+    search_button =Button(search_customers, text="Search Customers", command=search_now)
+    search_button.grid(row=1, column=0, padx = 10)
 #list customers
 def list_customers():
     list_customer_query = Tk()
@@ -101,7 +135,8 @@ def list_customers():
             lookup_label = Label(list_customer_query, text =y)
             lookup_label.grid(row=index , column=num)
             num += 1
-
+    csv_button = Button(list_customer_query, text = "Save to Excel", command= lambda: write_to_csv(result))
+    csv_button.grid(row=index+1, column=0)
 # Create a lable 
 title_label = Label(root, text= "Nilab Database", font = ("Helvetica", 16))
 title_label.grid(row=0 , column=0, columnspan=2 , pady="10")
@@ -160,4 +195,11 @@ clear_fields_button.grid(row=14, column=1, padx=10, pady=10)
 # list customers button
 list_customers_button = Button(root, text="List Customer", command=list_customers)
 list_customers_button.grid(row = 15, column = 0, sticky=W, padx=10)
+
+# search customers 
+search_customers_button = Button(root, text="Search Customers", command=search_customer)
+search_customers_button.grid(row=15, column=1, sticky=W, padx=10)
+
+
+
 root.mainloop()
